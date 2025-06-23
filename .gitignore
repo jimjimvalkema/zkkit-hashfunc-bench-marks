@@ -1,3 +1,10 @@
+# hardhat
+artifacts
+cache
+
+# vscode
+.vscode
+
 # Logs
 logs
 *.log
