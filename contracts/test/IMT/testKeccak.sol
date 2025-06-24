@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.4;
 
-import {BinaryIMTKeccak, BinaryIMTData} from "../BinaryIMTKeccak.sol";
+import {BinaryIMTKeccak, BinaryIMTData} from "../../BinaryIMTKeccak.sol";
 
 contract testKeccak {
     BinaryIMTData public data;

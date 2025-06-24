@@ -38,7 +38,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 10000,
+            runs: 200,
           },
         },
       },
@@ -58,10 +58,16 @@ const config: HardhatUserConfig = {
        * in the future.
        */
       "forge-std/=npm/forge-std@1.9.4/src/",
+      "@zk-kit/=node_modules/@zk-kit/",
+      "poseidon-solidity/=node_modules/poseidon-solidity/",
+      "zk-kit-imt-custom-hash/=node_modules/zk-kit-imt-custom-hash/"
     ],
   },
   paths: {
-    sources: ["./contracts", "./node_modules/poseidon-solidity/", "./node_modules/zk-kit-imt-custom-hash/contracts/"],
+    sources: [
+      "./contracts", "./node_modules/poseidon-solidity/", "./node_modules/zk-kit-imt-custom-hash/contracts/",
+      "./node_modules/@zk-kit/imt.sol/internal"
+    ],
     artifacts: "./artifacts",
   },
   /*

@@ -75,10 +75,25 @@ describe("Keccak", async function () {
     console.log({averageGasInsert, totalGas})
   });
 
-    it("poseidon", async function () {
+  it("poseidon", async function () {
     const PoseidonT3Lib = await viem.deployContract("PoseidonT3", [], { value: 0n, libraries: {} })
-    const BinaryIMTPoseidon = await viem.deployContract("BinaryIMT", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
-    const keccakTree = await viem.deployContract("testPoseidon",[32n], {libraries:{BinaryIMT:BinaryIMTPoseidon.address}})
+    const BinaryIMTPoseidon = await viem.deployContract("BinaryIMTPoseidon", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
+    const keccakTree = await viem.deployContract("testPoseidon",[32n], {libraries:{BinaryIMTPoseidon:BinaryIMTPoseidon.address}})
+    
+    const iters = 100
+    const getRandomBigInt = () => bytesToBigInt(crypto.getRandomValues(new Uint8Array(new Array(32).fill(0)))) % FIELD_LIMIT
+    const randomBigInts = new Array(iters).fill(await keccakTree.write.insert([getRandomBigInt()]))
+    const receipts = await Promise.all(randomBigInts.map(async (hash)=>await (await viem.getPublicClient()).waitForTransactionReceipt({hash})))
+    const totalGas = receipts.reduce((a:bigint, b:TransactionReceipt) => a + b.gasUsed, 0n);
+    const averageGasInsert = Number(totalGas) / iters
+    console.log({averageGasInsert, totalGas})
+  });
+
+
+  it("old zk-kit poseidon", async function () {
+    const PoseidonT3Lib = await viem.deployContract("PoseidonT3", [], { value: 0n, libraries: {} })
+    const BinaryOldZKKITIMTPoseidon = await viem.deployContract("BinaryOldZKKITIMTPoseidon", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
+    const keccakTree = await viem.deployContract("testOldZKKITPoseidon",[32n], {libraries:{BinaryOldZKKITIMTPoseidon:BinaryOldZKKITIMTPoseidon.address}})
     
     const iters = 100
     const getRandomBigInt = () => bytesToBigInt(crypto.getRandomValues(new Uint8Array(new Array(32).fill(0)))) % FIELD_LIMIT
