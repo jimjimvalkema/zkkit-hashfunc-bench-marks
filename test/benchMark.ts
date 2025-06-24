@@ -104,4 +104,17 @@ describe("Keccak", async function () {
     console.log({averageGasInsert, totalGas})
   });
 
+  it("SHA256", async function () {
+    const BinaryIMTSHA256 = await viem.deployContract("BinaryIMTSHA256");
+    const keccakTree = await viem.deployContract("testSHA256",[32n], {libraries:{BinaryIMTSHA256:BinaryIMTSHA256.address}})
+    
+    const iters = 100
+    const getRandomBigInt = () =>bytesToBigInt(crypto.getRandomValues(new Uint8Array(new Array(32).fill(0))))
+    const randomBigInts = new Array(iters).fill(await keccakTree.write.insert([getRandomBigInt()]))
+    const receipts = await Promise.all(randomBigInts.map(async (hash)=>await (await viem.getPublicClient()).waitForTransactionReceipt({hash})))
+    const totalGas = receipts.reduce((a:bigint, b:TransactionReceipt) => a + b.gasUsed, 0n);
+    const averageGasInsert = Number(totalGas) / iters
+    console.log({averageGasInsert, totalGas})
+  });
+
 })
