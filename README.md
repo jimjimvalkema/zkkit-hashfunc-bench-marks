@@ -72,8 +72,8 @@ Sha256:               1533760 (-28.8%) gas   circuit size: 581945    ( +875%)   
 
 ## proof time 16 depth tree
 ```yaml
-og-zk-kit-poseidon:   2156770 (  0.0%) gas   circuit size: 29844     (  0.0%)   proof time: 2.178s      (   0.0%)
-Poseidon:             2154253 ( +0.1%) gas   circuit size: 29844     (  0.0%)   proof time: 2.178s      (   0.0%)
-Keccak:               1533760 (-28.8%) gas   circuit size: 565346    (+1794%)   proof time: 33.759s     ( +1450%)
-Sha256:               1533760 (-28.8%) gas   circuit size: 292724    ( +880%)   proof time: 11.424s     (  +424%)
+og-zk-kit-poseidon: circuit size: 29844     (  0.0%)   proof time: 2.178s      (   0.0%)
+Poseidon:           circuit size: 29844     (  0.0%)   proof time: 2.178s      (   0.0%)
+Keccak:             circuit size: 565346    (+1794%)   proof time: 33.759s     ( +1450%)
+Sha256:             circuit size: 292724    ( +880%)   proof time: 11.424s     (  +424%)
 ```
