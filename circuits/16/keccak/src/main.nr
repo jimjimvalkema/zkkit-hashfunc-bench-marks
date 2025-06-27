@@ -19,7 +19,7 @@ fn hasher(leaves: [[u8;32]; 2]) -> [u8;32] {
 }
 
 // @WARNING index being a field means you cannot prove indexes above the field limit
-fn main(root:[u8; 32], leaf: [u8; 32], index:Field, hash_path: [[u8; 32]; TREE_DEPTH]) {
+fn main(root: pub [u8; 32], leaf: [u8; 32], index:Field, hash_path: [[u8; 32]; TREE_DEPTH]) {
     let merkle_tree = MerkleTree::from(root, hasher);
     let calculated_root = merkle_tree.calculate_root(leaf,index , hash_path);
     assert(calculated_root == root, "root doesn't match :/");

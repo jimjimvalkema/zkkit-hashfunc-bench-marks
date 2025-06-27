@@ -24,12 +24,13 @@ const smallPad = (s: string) => s.length === 2 ? s : "0" + s
 //@ts-ignore
 const splitHexToU8s = (hex: string,padLen=32) => pad(hex.replace(/^0x/, '').match(/.{1,2}/g).map((n) => "0x" + n),padLen);
 
-describe("insert", async function () {
+describe("insert gas test 32", async function () {
   const { viem } = await network.connect();
+  const treeDepth = 32n
 
   it("keccak", async function () {
     const BinaryIMTKeccak = await viem.deployContract("BinaryIMTKeccak");
-    const keccakTree = await viem.deployContract("testKeccak", [32n], { libraries: { BinaryIMTKeccak: BinaryIMTKeccak.address } })
+    const keccakTree = await viem.deployContract("testKeccak", [treeDepth], { libraries: { BinaryIMTKeccak: BinaryIMTKeccak.address } })
 
     const iters = 100
 
@@ -37,13 +38,13 @@ describe("insert", async function () {
     const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash })))
     const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
     const averageGasInsert = Number(totalGas) / iters
-    console.log({ averageGasInsert, totalGas })
+    console.log({ averageGasInsert, })
   });
 
   it("poseidon", async function () {
     const PoseidonT3Lib = await viem.deployContract("PoseidonT3", [], { value: 0n, libraries: {} })
     const BinaryIMTPoseidon = await viem.deployContract("BinaryIMTPoseidon", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
-    const poseidonTree = await viem.deployContract("testPoseidon", [32n], { libraries: { BinaryIMTPoseidon: BinaryIMTPoseidon.address } })
+    const poseidonTree = await viem.deployContract("testPoseidon", [treeDepth], { libraries: { BinaryIMTPoseidon: BinaryIMTPoseidon.address } })
 
     const iters = 100
 
@@ -51,26 +52,26 @@ describe("insert", async function () {
     const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash })))
     const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
     const averageGasInsert = Number(totalGas) / iters
-    console.log({ averageGasInsert, totalGas })
+    console.log({ averageGasInsert, })
   });
 
 
   it("old zk-kit poseidon", async function () {
     const PoseidonT3Lib = await viem.deployContract("PoseidonT3", [], { value: 0n, libraries: {} })
     const BinaryOldZKKITIMTPoseidon = await viem.deployContract("BinaryOldZKKITIMTPoseidon", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
-    const ogPoseidonTree = await viem.deployContract("testOldZKKITPoseidon", [32n], { libraries: { BinaryOldZKKITIMTPoseidon: BinaryOldZKKITIMTPoseidon.address } })
+    const ogPoseidonTree = await viem.deployContract("testOldZKKITPoseidon", [treeDepth], { libraries: { BinaryOldZKKITIMTPoseidon: BinaryOldZKKITIMTPoseidon.address } })
 
     const iters = 100
     const insertTxs = new Array(iters).fill(await ogPoseidonTree.write.insert([getRandomBigInt() % FIELD_LIMIT]))
     const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash })))
     const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
     const averageGasInsert = Number(totalGas) / iters
-    console.log({ averageGasInsert, totalGas })
+    console.log({ averageGasInsert })
   });
 
   it("SHA256", async function () {
     const BinaryIMTSHA256 = await viem.deployContract("BinaryIMTSHA256");
-    const SHA256Tree = await viem.deployContract("testSHA256", [32n], { libraries: { BinaryIMTSHA256: BinaryIMTSHA256.address } })
+    const SHA256Tree = await viem.deployContract("testSHA256", [treeDepth], { libraries: { BinaryIMTSHA256: BinaryIMTSHA256.address } })
 
     const iters = 100
 
@@ -78,19 +79,80 @@ describe("insert", async function () {
     const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash })))
     const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
     const averageGasInsert = Number(totalGas) / iters
-    console.log({ averageGasInsert, totalGas })
+    console.log({ averageGasInsert})
+  });
+});
+
+describe("insert gas test 16", async function () {
+  const { viem } = await network.connect();
+  const treeDepth = 16n
+
+  it("keccak", async function () {
+    const BinaryIMTKeccak = await viem.deployContract("BinaryIMTKeccak");
+    const keccakTree = await viem.deployContract("testKeccak", [treeDepth], { libraries: { BinaryIMTKeccak: BinaryIMTKeccak.address } })
+
+    const iters = 100
+
+    const insertTxs = new Array(iters).fill(await keccakTree.write.insert([getRandomBigInt()]))
+    const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash })))
+    const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
+    const averageGasInsert = Number(totalGas) / iters
+    console.log({ averageGasInsert, })
+  });
+
+  it("poseidon", async function () {
+    const PoseidonT3Lib = await viem.deployContract("PoseidonT3", [], { value: 0n, libraries: {} })
+    const BinaryIMTPoseidon = await viem.deployContract("BinaryIMTPoseidon", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
+    const poseidonTree = await viem.deployContract("testPoseidon", [treeDepth], { libraries: { BinaryIMTPoseidon: BinaryIMTPoseidon.address } })
+
+    const iters = 100
+
+    const insertTxs = new Array(iters).fill(await poseidonTree.write.insert([getRandomBigInt() % FIELD_LIMIT]))
+    const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash })))
+    const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
+    const averageGasInsert = Number(totalGas) / iters
+    console.log({ averageGasInsert, })
+  });
+
+
+  it("old zk-kit poseidon", async function () {
+    const PoseidonT3Lib = await viem.deployContract("PoseidonT3", [], { value: 0n, libraries: {} })
+    const BinaryOldZKKITIMTPoseidon = await viem.deployContract("BinaryOldZKKITIMTPoseidon", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
+    const ogPoseidonTree = await viem.deployContract("testOldZKKITPoseidon", [treeDepth], { libraries: { BinaryOldZKKITIMTPoseidon: BinaryOldZKKITIMTPoseidon.address } })
+
+    const iters = 100
+    const insertTxs = new Array(iters).fill(await ogPoseidonTree.write.insert([getRandomBigInt() % FIELD_LIMIT]))
+    const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash })))
+    const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
+    const averageGasInsert = Number(totalGas) / iters
+    console.log({ averageGasInsert, })
+  });
+
+  it("SHA256", async function () {
+    const BinaryIMTSHA256 = await viem.deployContract("BinaryIMTSHA256");
+    const SHA256Tree = await viem.deployContract("testSHA256", [treeDepth], { libraries: { BinaryIMTSHA256: BinaryIMTSHA256.address } })
+
+    const iters = 100
+
+    const insertTxs = new Array(iters).fill(await SHA256Tree.write.insert([getRandomBigInt()]))
+    const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash })))
+    const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
+    const averageGasInsert = Number(totalGas) / iters
+    console.log({ averageGasInsert, })
   });
 });
 
 describe("prove 16 depth", async function () {
   const { viem } = await network.connect();
   const publicClient = await viem.getPublicClient();
+    const verifyZk = await viem.deployContract("verifyZk",[],{})
   const treeDepth = 16n
 
 
   it("keccak", async function () {
     const BinaryIMTKeccak = await viem.deployContract("BinaryIMTKeccak");
     const keccakTree = await viem.deployContract("testKeccak", [treeDepth], { libraries: { BinaryIMTKeccak: BinaryIMTKeccak.address } })
+    const verifier = await viem.deployContract("keccakIMTVerifier",[],{})
 
     const leaf = 12345n//getRandomBigInt()
     const insertTx = await keccakTree.write.insert([leaf])
@@ -117,7 +179,7 @@ describe("prove 16 depth", async function () {
     let proof
     try {
       const { witness, returnValue } = await noir.execute(proofInputs);
-      proof = await backend.generateProof(witness);
+      proof = await backend.generateProof(witness, {keccak:true});
 
     } catch (error) {
       console.error(error)
@@ -126,12 +188,17 @@ describe("prove 16 depth", async function () {
 
     console.timeEnd('prove keccak')
     await backend.destroy()
+    //@ts-ignore
+    const verifyTx = await verifyZk.write.verifyZkPayable([toHex(proof.proof), [...proofInputs.root.map((v)=>padHex(v,{size:32}))], verifier.address])
+    const verifyReceipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: verifyTx });
+    console.log({verifyGas:verifyReceipt.gasUsed})
+
   });
 
     it("sha256", async function () {
     const BinaryIMTSHA256 = await viem.deployContract("BinaryIMTSHA256");
     const SHA256Tree = await viem.deployContract("testSHA256",[treeDepth] , { libraries: { BinaryIMTSHA256: BinaryIMTSHA256.address } })
-
+    const verifier = await viem.deployContract("sha256IMTVerifier",[],{})
     const leaf = 12345n//getRandomBigInt()
     const insertTx = await SHA256Tree.write.insert([leaf])
     const receipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: insertTx })
@@ -157,7 +224,7 @@ describe("prove 16 depth", async function () {
     let proof
     try {
       const { witness, returnValue } = await noir.execute(proofInputs);
-      proof = await backend.generateProof(witness);
+      proof = await backend.generateProof(witness, {keccak:true});
 
     } catch (error) {
       console.error(error)
@@ -166,12 +233,18 @@ describe("prove 16 depth", async function () {
 
     console.timeEnd('prove sha256')
     await backend.destroy()
+    //@ts-ignore
+    const verifyTx = await verifyZk.write.verifyZkPayable([toHex(proof.proof), [...proofInputs.root.map((v)=>padHex(v,{size:32}))], verifier.address])
+    const verifyReceipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: verifyTx });
+    console.log({verifyGas:verifyReceipt.gasUsed})
+
   });
 
   it("poseidon", async function () {
     const PoseidonT3Lib = await viem.deployContract("PoseidonT3", [], { value: 0n, libraries: {} })
     const BinaryIMTPoseidon = await viem.deployContract("BinaryIMTPoseidon", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
     const poseidonTree = await viem.deployContract("testPoseidon",[treeDepth] , { libraries: { BinaryIMTPoseidon: BinaryIMTPoseidon.address } })
+    const verifier = await viem.deployContract("poseidonIMTVerifier",[],{})
 
     const leaf = getRandomBigInt() % FIELD_LIMIT
     const insertTx = await poseidonTree.write.insert([leaf])
@@ -194,9 +267,13 @@ describe("prove 16 depth", async function () {
       hash_path: merkleProof.siblings.map((a) => toHex(a[0]))
     }
     const { witness, returnValue } = await noir.execute(proofInputs);
-    const proof = await backend.generateProof(witness);
+    const proof = await backend.generateProof(witness, {keccak:true});
     console.timeEnd('prove poseidon')
     await backend.destroy()
+    //@ts-ignore
+    const verifyTx = await verifyZk.write.verifyZkPayable([toHex(proof.proof), [padHex(proofInputs.root, {size:32})], verifier.address])
+    const verifyReceipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: verifyTx });
+    console.log({verifyGas:verifyReceipt.gasUsed})
   });
 
 
@@ -204,6 +281,7 @@ describe("prove 16 depth", async function () {
     const PoseidonT3Lib = await viem.deployContract("PoseidonT3", [], { value: 0n, libraries: {} })
     const BinaryOldZKKITIMTPoseidon = await viem.deployContract("BinaryOldZKKITIMTPoseidon", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
     const ogPoseidonTree = await viem.deployContract("testOldZKKITPoseidon",[treeDepth] , { libraries: { BinaryOldZKKITIMTPoseidon: BinaryOldZKKITIMTPoseidon.address } })
+    const verifier = await viem.deployContract("poseidonIMTVerifier",[],{})
 
     const leaf = getRandomBigInt() % FIELD_LIMIT
     const insertTx = await ogPoseidonTree.write.insert([leaf])
@@ -226,9 +304,13 @@ describe("prove 16 depth", async function () {
       hash_path: merkleProof.siblings.map((a) => toHex(a[0]))
     }
     const { witness, returnValue } = await noir.execute(proofInputs);
-    const proof = await backend.generateProof(witness);
+    const proof = await backend.generateProof(witness,{keccak:true});
     console.timeEnd('prove og zk-kit poseidon')
     await backend.destroy()
+    //@ts-ignore
+    const verifyTx = await verifyZk.write.verifyZkPayable([toHex(proof.proof), [padHex(proofInputs.root, {size:32})], verifier.address])
+    const verifyReceipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: verifyTx });
+    console.log({verifyGas:verifyReceipt.gasUsed})
   });
 })
 describe("prove 32 depth", async function () {
@@ -266,7 +348,7 @@ describe("prove 32 depth", async function () {
     let proof
     try {
       const { witness, returnValue } = await noir.execute(proofInputs);
-      proof = await backend.generateProof(witness);
+      proof = await backend.generateProof(witness, {keccak:true});
 
     } catch (error) {
       console.error(error)
@@ -307,7 +389,7 @@ describe("prove 32 depth", async function () {
     let proof
     try {
       const { witness, returnValue } = await noir.execute(proofInputs);
-      proof = await backend.generateProof(witness);
+      proof = await backend.generateProof(witness, {keccak:true});
 
     } catch (error) {
       console.error(error)
@@ -345,7 +427,7 @@ describe("prove 32 depth", async function () {
       hash_path: merkleProof.siblings.map((a) => toHex(a[0]))
     }
     const { witness, returnValue } = await noir.execute(proofInputs);
-    const proof = await backend.generateProof(witness);
+    const proof = await backend.generateProof(witness, {keccak:true});
     console.timeEnd('prove poseidon')
     await backend.destroy()
   });
@@ -377,7 +459,7 @@ describe("prove 32 depth", async function () {
       hash_path: merkleProof.siblings.map((a) => toHex(a[0]))
     }
     const { witness, returnValue } = await noir.execute(proofInputs);
-    const proof = await backend.generateProof(witness);
+    const proof = await backend.generateProof(witness, {keccak:true});
     console.timeEnd('prove og zk-kit poseidon')
     await backend.destroy()
   });
