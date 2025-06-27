@@ -9,6 +9,7 @@ bbup -v 0.84.0
 
 ## compile circuit and verify contracts
 ```shell
+# compile and generate contracts
 cd circuits/poseidon
 nargo compile; 
 bb write_vk -b ./target/poseidon.json -o ./target/ --oracle_hash keccak;
@@ -26,13 +27,35 @@ nargo compile;
 bb write_vk -b ./target/sha256.json -o ./target/ --oracle_hash keccak;
 bb write_solidity_verifier -k ./target/vk --scheme ultra_honk -o ../../contracts/test/IMT/verifiers/sha256IMTVerifier.sol;
 cd ../..;
+
+# rename the contracts
+yarn ts-node ./scripts/replaceLine.ts --file ./contracts/test/IMT/verifiers/poseidonIMTVerifier.sol \
+--remove "contract HonkVerifier is BaseHonkVerifier(N, LOG_N, NUMBER_OF_PUBLIC_INPUTS) {" \
+--replace "contract poseidonIMTVerifier is BaseHonkVerifier(N, LOG_N, NUMBER_OF_PUBLIC_INPUTS) {";
+
+yarn ts-node ./scripts/replaceLine.ts --file ./contracts/test/IMT/verifiers/keccakIMTVerifier.sol \
+--remove "contract HonkVerifier is BaseHonkVerifier(N, LOG_N, NUMBER_OF_PUBLIC_INPUTS) {" \
+--replace "contract keccakIMTVerifier is BaseHonkVerifier(N, LOG_N, NUMBER_OF_PUBLIC_INPUTS) {";
+
+yarn ts-node ./scripts/replaceLine.ts --file ./contracts/test/IMT/verifiers/sha256IMTVerifier.sol \
+--remove "contract HonkVerifier is BaseHonkVerifier(N, LOG_N, NUMBER_OF_PUBLIC_INPUTS) {" \
+--replace "contract sha256IMTVerifier is BaseHonkVerifier(N, LOG_N, NUMBER_OF_PUBLIC_INPUTS) {";
 ```
 
 
-## insert
+## insert 32 depth tree
 ```yaml
 og-zk-kit-poseidon:   2156770 (  0.0%) gas   circuit size: 59673     (  0.0%)
 Poseidon:             2154253 ( +0.1%) gas   circuit size: 59673     (  0.0%)     
-Keccak:               1533760 (-28.8%) gas   circuit size: 1130638   (+1795%)  
+Keccak:               1533760 (-28.8%) gas   circuit size: 1130638   (+1795%)       proof time: DNF          
+Sha256:               1533760 (-28.8%) gas   circuit size: 581945    ( +875%)
+```
+
+
+## proof time 16 depth tree
+```yaml
+og-zk-kit-poseidon:   2156770 (  0.0%) gas   circuit size: 59673     (  0.0%)
+Poseidon:             2154253 ( +0.1%) gas   circuit size: 59673     (  0.0%)     
+Keccak:               1533760 (-28.8%) gas   circuit size: 1130638   (+1795%)       proof time: 1:30.624 (m:ss.mmm)       
 Sha256:               1533760 (-28.8%) gas   circuit size: 581945    ( +875%)
 ```
