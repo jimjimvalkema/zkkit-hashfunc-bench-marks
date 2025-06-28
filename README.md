@@ -68,21 +68,23 @@ yarn hardhat test
 
 ## insert 32 depth tree
 ```yaml
-og-zk-kit-poseidon:     2156770 (  0.0%) gas    circuit size: 59673   (  0.0%)  proof time: 4.799s  ( 0.0%)
-Poseidon:               2154253 ( +0.1%) gas    circuit size: 59673   (  0.0%)  proof time: 4.799s  ( 0.0%)
-Keccak:                 1533760 (-28.8%) gas    circuit size: 1130638 (+1795%)  proof time: DNF     (  DNF)      
-Sha256:                 1533760 (-28.8%) gas    circuit size: 581945  ( +875%)  proof time: 26.475s (+451%)
+og-zk-kit-poseidon:     1274125 (  0.0%) gas    circuit size: 59673   (  0.0%)  proof time: 4.306s  ( 0.0%)
+Poseidon:               1281514 (+0.58%) gas    circuit size: 59673   (  0.0%)  proof time: 4.306s  ( 0.0%)
+Poseidon2*:            11842583 ( +824%) gas
+Keccak:                  333599 (-73.4%) gas    circuit size: 1130638 (+1795%)  proof time: DNF     (  DNF)      
+Sha256:                  333599 (-73.4%) gas    circuit size: 581945  ( +875%)  proof time: 26.328s (+511%)
 ```
 
 
 ## proof time 16 depth tree
 ```yaml
-og-zk-kit-poseidon:     1095899 (  0.0%) gas    circuit size: 29844   (  0.0%)  proof time: 2.647s  (   0.0%)   verifier: 1958720 gas 
-Poseidon:               1094638 ( +0.1%) gas    circuit size: 29844   (  0.0%)  proof time: 2.647s  (   0.0%)   verifier: 1958744 gas 
-Keccak:                 783116  (-28.5%) gas    circuit size: 565346  (+1794%)  proof time: 45.451s ( +1617%)   verifier: 2172060 gas 
-Sha256:                 783116  (-28.5%) gas    circuit size: 292724  ( +880%)  proof time: 14.206s (  +436%)   verifier: 2138237 gas 
+og-zk-kit-poseidon:     658504 (  0.0%) gas    circuit size: 29844   (  0.0%)  proof time: 2.760s  (   0.0%)   verifier: 1958720 gas 
+Poseidon:               662188 (+0.56%) gas    circuit size: 29844   (  0.0%)  proof time: 2.760s  (   0.0%)   verifier: 1958744 gas 
+Poseidon2*:            5282247 ( +702%) gas
+Keccak:                 186941 (-71.6%) gas    circuit size: 565346  (+1794%)  proof time: 45.005s ( +1530%)   verifier: 2172060 gas 
+Sha256:                 186941 (-71.6%) gas    circuit size: 292724  ( +880%)  proof time: 14.128s (  +411%)   verifier: 2138237 gas 
 ```
 
 machine specs: AMD Ryzen 7 5800H, 8 core, 8 threads, 16gb DDR4, high end laptop from 2021  
   
-looks like the new custom hash function adds 80 gas per hash?
+*Poseidon2 is that expensive since i wasn't able to use a more optimized version. Which would be on par or cheaper then the normal poseidon

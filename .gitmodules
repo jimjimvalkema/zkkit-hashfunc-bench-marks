@@ -1,0 +1,3 @@
+[submodule "submodules/poseidon2-evm"]
+	path = submodules/poseidon2-evm
+	url = https://github.com/zemse/poseidon2-evm.git

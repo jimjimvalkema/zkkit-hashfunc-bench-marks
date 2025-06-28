@@ -1010,6 +1010,11 @@
   dependencies:
     buffer "^6.0.3"
 
+"@zkpassport/poseidon2@^0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@zkpassport/poseidon2/-/poseidon2-0.6.1.tgz#6c7d5345916d4632a3bfe25641605e9a6f6e0c2f"
+  integrity sha512-9jDOgCvZvrfZAoobPjDVKnBmcjE9HP2HwlCc/dpwAr87ERzGyV0WqY6y0AkomtlYEJIaAtAEjLeRgmKKNIqFCg==
+
 abitype@1.0.8, abitype@^1.0.8:
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/abitype/-/abitype-1.0.8.tgz#3554f28b2e9d6e9f35eb59878193eabd1b9f46ba"
@@ -1760,10 +1765,10 @@ yn@3.1.1:
   resolved "https://registry.yarnpkg.com/yn/-/yn-3.1.1.tgz#1e87401a09d767c1d5eab26a6e4c185182d2eb50"
   integrity sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==
 
-zk-kit-imt-custom-hash@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/zk-kit-imt-custom-hash/-/zk-kit-imt-custom-hash-0.0.1.tgz#c169188dbe71114a1323f5904a9b6c94552776f4"
-  integrity sha512-jGIu+jjc3kFe//3mIdnzsZVsRGRjsp464Nq3Qa8BZwGwnrxifWv1iKvm2+fN1L90dSeZBGVAMjqYWEqT+rZZ8A==
+zk-kit-imt-custom-hash@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/zk-kit-imt-custom-hash/-/zk-kit-imt-custom-hash-0.0.2.tgz#f1e56973a2c934ea72029efbb7b5bbadd967ce88"
+  integrity sha512-dCl9cPVvHClXBwjVJO8/CNhtnWz7raf5oldSDABksV2w2wWl5cjS2Cbq017NMiSTpW54KevtyGyHFiMe4rLYkA==
   dependencies:
     poseidon-solidity "0.0.5"
 

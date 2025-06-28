@@ -66,13 +66,17 @@ const config: HardhatUserConfig = {
       "forge-std/=npm/forge-std@1.9.4/src/",
       "@zk-kit/=node_modules/@zk-kit/",
       "poseidon-solidity/=node_modules/poseidon-solidity/",
-      "zk-kit-imt-custom-hash/=node_modules/zk-kit-imt-custom-hash/"
+      "zk-kit-imt-custom-hash/=node_modules/zk-kit-imt-custom-hash/",
+      "poseidon2-evm/=./submodules/poseidon2-evm/src/Poseidon2Lib.sol"
     ],
   },
   paths: {
     sources: [
-      "./contracts", "./node_modules/poseidon-solidity/", "./node_modules/zk-kit-imt-custom-hash/contracts/",
-      "./node_modules/@zk-kit/imt.sol/internal"
+      "./contracts", 
+      "./node_modules/poseidon-solidity/", 
+      "./node_modules/zk-kit-imt-custom-hash/contracts/",
+      "./node_modules/@zk-kit/imt.sol/internal",
+      "./submodules/poseidon2-evm/src"
     ],
     artifacts: "./artifacts",
   },

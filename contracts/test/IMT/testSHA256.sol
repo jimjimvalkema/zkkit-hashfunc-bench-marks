@@ -6,7 +6,6 @@ import {BinaryIMTSHA256, BinaryIMTData} from "../../BinaryIMTSHA256.sol";
 
 contract testSHA256 {
     BinaryIMTData public data;
-    uint256 public root;
 
     constructor(uint256 depth) {
         BinaryIMTSHA256.initWithDefaultZeroes(data, depth);
@@ -27,5 +26,9 @@ contract testSHA256 {
 
     function remove(uint256 leaf, uint256[] calldata proofSiblings, uint8[] calldata proofPathIndices) public {
         BinaryIMTSHA256.remove(data, leaf, proofSiblings, proofPathIndices);
+    }
+
+    function root() public view returns(uint256) {
+        return data.root;
     }
 }

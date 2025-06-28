@@ -6,7 +6,6 @@ import {BinaryIMTKeccak, BinaryIMTData} from "../../BinaryIMTKeccak.sol";
 
 contract testKeccak {
     BinaryIMTData public data;
-    uint256 public root;
 
     constructor(uint256 depth) {
         BinaryIMTKeccak.initWithDefaultZeroes(data, depth);
@@ -27,5 +26,8 @@ contract testKeccak {
 
     function remove(uint256 leaf, uint256[] calldata proofSiblings, uint8[] calldata proofPathIndices) public {
         BinaryIMTKeccak.remove(data, leaf, proofSiblings, proofPathIndices);
+    }
+    function root() public view returns(uint256) {
+        return data.root;
     }
 }

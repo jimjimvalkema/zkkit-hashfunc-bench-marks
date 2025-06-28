@@ -6,7 +6,6 @@ import  {BinaryIMTPoseidon}  from "../../BinaryIMTPoseidon.sol";
 import { BinaryIMTData} from "zk-kit-imt-custom-hash/contracts/InternalBinaryIMT.sol";
 contract testPoseidon {
     BinaryIMTData public data;
-    uint256 public root;
 
     constructor(uint256 depth) {
         BinaryIMTPoseidon.initWithDefaultZeroes(data, depth);
@@ -27,5 +26,9 @@ contract testPoseidon {
 
     function remove(uint256 leaf, uint256[] calldata proofSiblings, uint8[] calldata proofPathIndices) public {
         BinaryIMTPoseidon.remove(data, leaf, proofSiblings, proofPathIndices);
+    }
+
+    function root() public view returns(uint256) {
+        return data.root;
     }
 }

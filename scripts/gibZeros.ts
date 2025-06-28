@@ -1,10 +1,22 @@
-import {keccak256, concat, numberToBytes, ByteArray, toHex, sha256} from "viem"
-const ZERO = numberToBytes(0, { size: 32 })
+import {keccak256, concat, numberToBytes, ByteArray, toHex, sha256, toBytes} from "viem"
+import { poseidon2Hash } from "@zkpassport/poseidon2"
+import { poseidon2 } from "poseidon-lite";
+const ZERO_BYTES = numberToBytes(0, { size: 32 })
+const ZERO_BIGINT = 0n;
 
-function gibZero(howMuch:number, zero=ZERO) {
+function gibZeroBytes(howMuch:number, zero=ZERO_BYTES, hashFunc=keccak256) {
     let zeros = [zero]
     for (let index = 0; index < howMuch; index++) {
-        zero = sha256(concat([zero,zero]), "bytes")
+        zero = hashFunc(concat([zero,zero]), "bytes")
+        zeros.push(zero)
+    }
+    return zeros    
+}
+
+function gibZeroBigInt(howMuch:number, zero=ZERO_BIGINT, hashFunc=poseidon2) {
+    let zeros = [zero]
+    for (let index = 0; index < howMuch; index++) {
+        zero = hashFunc([zero, zero])
         zeros.push(zero)
     }
     return zeros    
@@ -22,4 +34,4 @@ function makeSolidityZeros(zeros:ByteArray[]) {
     return constants + defaultFunc
 }
 
-console.log(makeSolidityZeros(gibZero(256)))
+console.log(makeSolidityZeros(gibZeroBigInt(256).map((v)=>toBytes(v))))
