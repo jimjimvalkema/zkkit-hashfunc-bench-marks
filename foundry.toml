@@ -1,0 +1,20 @@
+[profile.default]
+src = "src"
+out = "artifacts"
+libs = [
+    "lib",
+    "node_modules",
+]
+remappings = [
+    "forge-std/=lib/forge-std/src/",
+    "@zk-kit=node_modules/@zk-kit/",
+    "ds-test/=lib/foundry-huff/lib/forge-std/lib/ds-test/src/",
+    "foundry-huff/=lib/foundry-huff/src/",
+    "hardhat/=node_modules/hardhat/",
+    "poseidon-solidity/=node_modules/poseidon-solidity/",
+    "solidity-stringutils/=lib/foundry-huff/lib/solidity-stringutils/",
+    "stringutils/=lib/foundry-huff/lib/solidity-stringutils/",
+    "zk-kit-imt-custom-hash/=node_modules/zk-kit-imt-custom-hash/",
+]
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

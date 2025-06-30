@@ -63,7 +63,10 @@ cd ../../..;
 ```
 ## run bench mark
 ```shell
-yarn hardhat test
+yarn hardhat node
+```
+```shell
+yarn hardhat test --hardhatMainnet
 ```
 
 ## insert 32 depth tree
@@ -88,3 +91,18 @@ Sha256:                 186941 (-71.6%) gas    circuit size: 292724  ( +880%)  p
 machine specs: AMD Ryzen 7 5800H, 8 core, 8 threads, 16gb DDR4, high end laptop from 2021  
   
 *Poseidon2 is that expensive since i wasn't able to use a more optimized version. Which would be on par or cheaper then the normal poseidon
+
+
+
+compile poseidon2 huff
+install huff
+```shell
+curl -L get.huff.sh | bash;
+source ~/.bashrc;
+haffup;
+```
+compile
+```shell
+huffc submodules/poseidon2-evm/src/huff/Poseidon2.huff --bytecode > deploy/poseidon2ByteCode.txt
+# now copy paste it in poseidon2huff.ts 
+```

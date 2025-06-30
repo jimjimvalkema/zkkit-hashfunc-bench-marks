@@ -1,8 +1,8 @@
 // We don't have Ethereum specific assertions in Hardhat 3 yet
 import { describe, it, assert } from "node:test";
-
+import { poseidon2huffByteCode } from "../deploy/poseidon2huff.js";
 import { network } from "hardhat";
-import { bytesToBigInt, TransactionReceipt, toHex, keccak256, sha256, hexToBigInt, concat, padHex, toBytes, Hex } from "viem"
+import { bytesToBigInt, TransactionReceipt, toHex, keccak256, sha256, hexToBigInt, concat, padHex, toBytes, Hex, Address, getAddress, compactSignatureToHex, Account, getContract } from "viem"
 import { UltraHonkBackend } from '@aztec/bb.js';
 import { Noir, CompiledCircuit, InputMap } from '@noir-lang/noir_js';
 import keccakCircuit16 from "../circuits/16/keccak/target/keccak.json" //assert { type: 'json' };
@@ -15,6 +15,8 @@ import { IMT, IMTNode } from "@zk-kit/imt"
 import { poseidon2 } from "poseidon-lite"
 import os from "node:os"
 import { MerkleTree, PartialMerkleTree } from 'fixed-merkle-tree'
+import { toAccount } from "viem/accounts";
+import { poseidon2Hash } from "@zkpassport/poseidon2"
 const FIELD_LIMIT = 21888242871839275222246405745257275088548364400416034343698204186575808495617n
 const getRandomBigInt = () => bytesToBigInt(crypto.getRandomValues(new Uint8Array(new Array(32).fill(0))))
 const pad = (hexArr: string[], len = 32) => {
@@ -73,7 +75,47 @@ describe("insert gas test 32", async function () {
     console.log({ averageGasInsert, root })
   });
 
-  it("poseidon2", async function () {
+  it("poseidon2Huff", async function () {
+    const client = await viem.getPublicClient()
+    const [walletClient] =await viem.getWalletClients()
+    //@ts-ignore
+    const poseidonDeployTx = await walletClient.deployContract({bytecode:poseidon2huffByteCode})
+    const poseidon2DeployReceipt = await client.waitForTransactionReceipt({ hash: poseidonDeployTx })
+    const Poseidon2 = getAddress(poseidon2DeployReceipt.contractAddress as string )
+
+    const BinaryIMTHuffPoseidon2 = await viem.deployContract("BinaryIMTHuffPoseidon2", [], { value: 0n, libraries: { } });
+    const poseidon2Tree = await viem.deployContract("testHuffPoseidon2", [treeDepth,Poseidon2], { libraries: { BinaryIMTHuffPoseidon2: BinaryIMTHuffPoseidon2.address } })
+    
+    const preimg = [0n,1n]
+    //@ts-ignore
+    const onChainHash = await poseidon2Tree.read.hash([[preimg[0]]])
+    const jsHash = toHex(poseidon2Hash(preimg))
+    if (jsHash !== onChainHash){console.error("poseidon2Huff hashes don't match")}
+    console.log({onChainHash,jsHash})
+
+
+    const iters = 3
+
+
+
+    const leafs = new Array(iters).fill(0).map((v, i) => BigInt(i))
+    const insertTxs: any = []
+        // first insert is alway way more expensive since it warm the slots
+    await poseidon2Tree.write.insert([10000000000000000000n])
+    for (const leaf of leafs) {
+      insertTxs.push(await poseidon2Tree.write.insert([leaf]))
+
+    }
+    //@ts-ignore
+    const receipts = await Promise.all(insertTxs.map(async (hash) => await client.waitForTransactionReceipt({ hash: await hash })))
+    const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
+    const averageGasInsert = Number(totalGas) / iters
+    //@ts-ignore
+    const root = toHex(await poseidon2Tree.read.root())
+    console.log({ averageGasInsert, root })
+  });
+
+  it("poseidon2Solidity", async function () {
     const Poseidon2 = await viem.deployContract("Poseidon2", [], { value: 0n, libraries: {} })
     const BinaryIMTPoseidon2 = await viem.deployContract("BinaryIMTPoseidon2", [], { value: 0n, libraries: {} });
     const poseidon2Tree = await viem.deployContract("testPoseidon2", [treeDepth], { libraries: { BinaryIMTPoseidon2: BinaryIMTPoseidon2.address } })
@@ -82,8 +124,12 @@ describe("insert gas test 32", async function () {
 
     const leafs = new Array(iters).fill(0).map((v, i) => BigInt(i))
     const insertTxs: any = []
-        // first insert is alway way more expensive since it warm the slots
+    // first insert is alway way more expensive since it warm the slots
     await poseidon2Tree.write.insert([10000000000000000000n])
+    const preimg= [1n,2n]
+    const onChainHash = await Poseidon2.read.hash_2([preimg[0],preimg[1]])
+    const jsHash = poseidon2Hash(preimg)
+    console.log({onChainHash, jsHash})
     for (const leaf of leafs) {
       insertTxs.push(await poseidon2Tree.write.insert([leaf]))
 
