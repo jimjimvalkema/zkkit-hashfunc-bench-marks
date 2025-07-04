@@ -2,10 +2,24 @@
 exploring the trade-offs of hash functions in noir and solidity
 
 ## install
+submodules
+```shell
+git submodule init;
+git submodule update;
+```
+
+yarn 
+```shell
+yarn install
+```
+
+noir
 ```shell
 noirup -v 1.0.0-beta.6
 bbup -v 0.84.0
 ```
+
+
 
 ## compile circuit and verify contracts
 
@@ -51,6 +65,11 @@ nargo compile;
 bb write_vk -b ./target/poseidon.json -o ./target/ --oracle_hash keccak;
 cd ../../..;
 
+cd circuits/32/poseidon2
+nargo compile; 
+bb write_vk -b ./target/poseidon2.json -o ./target/ --oracle_hash keccak;
+cd ../../..;
+
 cd circuits/32/keccak
 nargo compile; 
 bb write_vk -b ./target/keccak.json -o ./target/ --oracle_hash keccak;
@@ -63,34 +82,30 @@ cd ../../..;
 ```
 ## run bench mark
 ```shell
-yarn hardhat node
-```
-```shell
-yarn hardhat test --hardhatMainnet
+yarn hardhat test
 ```
 
 ## insert 32 depth tree
 ```yaml
-og-zk-kit-poseidon:     1274125 (  0.0%) gas    circuit size: 59673   (  0.0%)  proof time: 4.306s  ( 0.0%)
-Poseidon:               1281514 (+0.58%) gas    circuit size: 59673   (  0.0%)  proof time: 4.306s  ( 0.0%)
-Poseidon2*:            11842583 ( +824%) gas
-Keccak:                  333599 (-73.4%) gas    circuit size: 1130638 (+1795%)  proof time: DNF     (  DNF)      
-Sha256:                  333599 (-73.4%) gas    circuit size: 581945  ( +875%)  proof time: 26.328s (+511%)
+og-zk-kit-poseidon:     1274125 (  0.0%) gas    circuit size: 59673   (  0.0%)  proof time: 4.306s  (  0.0%)
+Poseidon:               1281514 (+0.58%) gas    circuit size: 59673   (  0.0%)  proof time: 4.306s  (  0.0%)
+Poseidon2-huff:          795795 (  -38%) gas    circuit size:  5118   (  -91%)  proof time: 0.930s  (-78.4%)
+Keccak*:                 333599 (-73.4%) gas    circuit size: 1130638 (+1795%)  proof time: DNF     (   DNF)      
+Sha256:                  333599 (-73.4%) gas    circuit size: 581945  ( +875%)  proof time: 26.328s ( +511%)
 ```
+*DNF because proof requires more then 4gb of ram which is the limit for wasm :/
 
 
 ## proof time 16 depth tree
 ```yaml
 og-zk-kit-poseidon:     658504 (  0.0%) gas    circuit size: 29844   (  0.0%)  proof time: 2.760s  (   0.0%)   verifier: 1958720 gas 
 Poseidon:               662188 (+0.56%) gas    circuit size: 29844   (  0.0%)  proof time: 2.760s  (   0.0%)   verifier: 1958744 gas 
-Poseidon2*:            5282247 ( +702%) gas
+Poseidon2*:             TODO
 Keccak:                 186941 (-71.6%) gas    circuit size: 565346  (+1794%)  proof time: 45.005s ( +1530%)   verifier: 2172060 gas 
 Sha256:                 186941 (-71.6%) gas    circuit size: 292724  ( +880%)  proof time: 14.128s (  +411%)   verifier: 2138237 gas 
 ```
 
 machine specs: AMD Ryzen 7 5800H, 8 core, 8 threads, 16gb DDR4, high end laptop from 2021  
-  
-*Poseidon2 is that expensive since i wasn't able to use a more optimized version. Which would be on par or cheaper then the normal poseidon
 
 
 

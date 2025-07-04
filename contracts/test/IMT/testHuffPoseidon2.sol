@@ -17,9 +17,9 @@ contract testHuffPoseidon2 {
         poseidon2 = _poseidon2;
     }
 
-    function hash(uint256[1] memory inputs) public returns (bytes memory) {
+    function hash(uint256[2] memory inputs) public returns (bytes memory) {
         (,bytes memory result )= poseidon2.call(
-            abi.encode([uint256(1),uint256(1)])
+            abi.encode(inputs)
         );
         //require(success, "call to poseidon2 failed");
         return result;

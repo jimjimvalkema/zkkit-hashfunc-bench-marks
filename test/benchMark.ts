@@ -11,7 +11,8 @@ import poseidonCircuit16 from "../circuits/16/poseidon/target/poseidon.json"
 import keccakCircuit32 from "../circuits/32/keccak/target/keccak.json" //assert { type: 'json' };
 import sha256Circuit32 from "../circuits/32/sha256/target/sha256.json"
 import poseidonCircuit32 from "../circuits/32/poseidon/target/poseidon.json"
-import { IMT, IMTNode } from "@zk-kit/imt"
+import poseidon2Circuit32 from "../circuits/32/poseidon2/target/poseidon2.json"
+import { IMT, IMTHashFunction, IMTNode } from "@zk-kit/imt"
 import { poseidon2 } from "poseidon-lite"
 import os from "node:os"
 import { MerkleTree, PartialMerkleTree } from 'fixed-merkle-tree'
@@ -48,7 +49,7 @@ describe("insert gas test 32", async function () {
     const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: await hash })))
     const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
     const averageGasInsert = Number(totalGas) / iters
-    const root = toHex(await ogPoseidonTree.read.root())
+    const root = toHex(await ogPoseidonTree.read.root() as bigint)
     console.log({ averageGasInsert, root })
   });
 
@@ -71,7 +72,7 @@ describe("insert gas test 32", async function () {
     const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: await hash })))
     const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
     const averageGasInsert = Number(totalGas) / iters
-    const root = toHex(await poseidonTree.read.root())
+    const root = toHex(await poseidonTree.read.root() as bigint)
     console.log({ averageGasInsert, root })
   });
 
@@ -88,19 +89,15 @@ describe("insert gas test 32", async function () {
     
     const preimg = [0n,1n]
     //@ts-ignore
-    const onChainHash = await poseidon2Tree.read.hash([[preimg[0]]])
-    const jsHash = toHex(poseidon2Hash(preimg))
+    const onChainHash = await poseidon2Tree.read.hash([[preimg[0], preimg[1]]])
+    const jsHash = toHex(poseidon2Hash(preimg), {size:32})
     if (jsHash !== onChainHash){console.error("poseidon2Huff hashes don't match")}
     console.log({onChainHash,jsHash})
 
-
-    const iters = 3
-
-
-
+    const iters = 5
     const leafs = new Array(iters).fill(0).map((v, i) => BigInt(i))
     const insertTxs: any = []
-        // first insert is alway way more expensive since it warm the slots
+    // first insert is alway way more expensive since it warm the slots
     await poseidon2Tree.write.insert([10000000000000000000n])
     for (const leaf of leafs) {
       insertTxs.push(await poseidon2Tree.write.insert([leaf]))
@@ -120,7 +117,7 @@ describe("insert gas test 32", async function () {
     const BinaryIMTPoseidon2 = await viem.deployContract("BinaryIMTPoseidon2", [], { value: 0n, libraries: {} });
     const poseidon2Tree = await viem.deployContract("testPoseidon2", [treeDepth], { libraries: { BinaryIMTPoseidon2: BinaryIMTPoseidon2.address } })
 
-    const iters = 3
+    const iters = 5
 
     const leafs = new Array(iters).fill(0).map((v, i) => BigInt(i))
     const insertTxs: any = []
@@ -138,7 +135,7 @@ describe("insert gas test 32", async function () {
     const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: await hash })))
     const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
     const averageGasInsert = Number(totalGas) / iters
-    const root = toHex(await poseidon2Tree.read.root())
+    const root = toHex(await poseidon2Tree.read.root() as bigint)
     console.log({ averageGasInsert, root })
   });
 
@@ -159,7 +156,7 @@ describe("insert gas test 32", async function () {
     const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: await hash })))
     const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
     const averageGasInsert = Number(totalGas) / iters
-    const root = toHex(await keccakTree.read.root())
+    const root = toHex(await keccakTree.read.root() as bigint)
     console.log({ averageGasInsert, root })
   });
 
@@ -180,10 +177,200 @@ describe("insert gas test 32", async function () {
     const receipts = await Promise.all(insertTxs.map(async (hash) => await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: await hash })))
     const totalGas = receipts.reduce((a: bigint, b: TransactionReceipt) => a + b.gasUsed, 0n);
     const averageGasInsert = Number(totalGas) / iters
-    const root = toHex(await SHA256Tree.read.root())
+    const root = toHex(await SHA256Tree.read.root() as bigint)
     console.log({ averageGasInsert, root })
   });
 });
+describe("prove 32 depth", async function () {
+  const { viem } = await network.connect();
+  const publicClient = await viem.getPublicClient();
+  const treeDepth = 32n
+
+  it("og zk-kit poseidon", async function () {
+    const PoseidonT3Lib = await viem.deployContract("PoseidonT3", [], { value: 0n, libraries: {} })
+    const BinaryOldZKKITIMTPoseidon = await viem.deployContract("BinaryOldZKKITIMTPoseidon", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
+    const ogPoseidonTree = await viem.deployContract("testOldZKKITPoseidon", [treeDepth], { libraries: { BinaryOldZKKITIMTPoseidon: BinaryOldZKKITIMTPoseidon.address } })
+
+    const leaf = getRandomBigInt() % FIELD_LIMIT
+    const insertTx = await ogPoseidonTree.write.insert([leaf])
+    const receipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: insertTx });
+
+    const jsTree = new IMT(poseidon2, Number(treeDepth), 0, 2)
+    jsTree.insert(leaf)
+    const leafIndex = jsTree.indexOf(leaf)
+    const merkleProof = jsTree.createProof(leafIndex)
+
+    console.time('prove og zk-kit poseidon')
+    const threads = os.cpus().length
+    console.log({ threads })
+    const noir = new Noir(poseidonCircuit32 as CompiledCircuit);
+    const backend = new UltraHonkBackend(poseidonCircuit32.bytecode, { threads });
+    const proofInputs: InputMap = {
+      root: toHex(jsTree.root),
+      leaf: toHex(leaf),
+      index: toHex(jsTree.indexOf(leaf)),
+      hash_path: merkleProof.siblings.map((a) => toHex(a[0]))
+    }
+    const { witness, returnValue } = await noir.execute(proofInputs);
+    const proof = await backend.generateProof(witness, { keccak: true });
+    console.timeEnd('prove og zk-kit poseidon')
+    await backend.destroy()
+  });
+
+  it("poseidon", async function () {
+    const PoseidonT3Lib = await viem.deployContract("PoseidonT3", [], { value: 0n, libraries: {} })
+    const BinaryIMTPoseidon = await viem.deployContract("BinaryIMTPoseidon", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
+    const poseidonTree = await viem.deployContract("testPoseidon", [treeDepth], { libraries: { BinaryIMTPoseidon: BinaryIMTPoseidon.address } })
+
+    const leaf = getRandomBigInt() % FIELD_LIMIT
+    const insertTx = await poseidonTree.write.insert([leaf])
+    const receipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: insertTx });
+
+    const jsTree = new IMT(poseidon2, Number(treeDepth), 0, 2)
+    jsTree.insert(leaf)
+    const leafIndex = jsTree.indexOf(leaf)
+    const merkleProof = jsTree.createProof(leafIndex)
+
+    console.time('prove poseidon')
+    const threads = os.cpus().length
+    console.log({ threads })
+    const noir = new Noir(poseidonCircuit32 as CompiledCircuit);
+    const backend = new UltraHonkBackend(poseidonCircuit32.bytecode, { threads });
+    const proofInputs: InputMap = {
+      root: toHex(jsTree.root),
+      leaf: toHex(leaf),
+      index: toHex(jsTree.indexOf(leaf)),
+      hash_path: merkleProof.siblings.map((a) => toHex(a[0]))
+    }
+    const { witness, returnValue } = await noir.execute(proofInputs);
+    const proof = await backend.generateProof(witness, { keccak: true });
+    console.timeEnd('prove poseidon')
+    await backend.destroy()
+  });
+
+  it("poseidon2", async function () {
+    const client = await viem.getPublicClient()
+    const [walletClient] =await viem.getWalletClients()
+    //@ts-ignore
+    const poseidonDeployTx = await walletClient.deployContract({bytecode:poseidon2huffByteCode})
+    const poseidon2DeployReceipt = await client.waitForTransactionReceipt({ hash: poseidonDeployTx })
+    const Poseidon2Address = getAddress(poseidon2DeployReceipt.contractAddress as string )
+
+    const BinaryIMTHuffPoseidon2 = await viem.deployContract("BinaryIMTHuffPoseidon2", [], { value: 0n, libraries: { } });
+    const poseidon2Tree = await viem.deployContract("testHuffPoseidon2", [treeDepth,Poseidon2Address], { libraries: { BinaryIMTHuffPoseidon2: BinaryIMTHuffPoseidon2.address } })
+    
+
+    const leaf = getRandomBigInt() % FIELD_LIMIT
+    const insertTx = await poseidon2Tree.write.insert([leaf])
+    const receipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: insertTx });
+
+    const poseidon2Real2Lol = poseidon2Hash as IMTHashFunction
+    const jsTree = new IMT(poseidon2Real2Lol, Number(treeDepth), 0n, 2)
+    jsTree.insert(leaf)
+    const leafIndex = jsTree.indexOf(leaf)
+    const merkleProof = jsTree.createProof(leafIndex)
+
+    console.time('prove poseidon2')
+    const threads = os.cpus().length
+    console.log({ threads })
+    const noir = new Noir(poseidon2Circuit32 as CompiledCircuit);
+    const backend = new UltraHonkBackend(poseidon2Circuit32.bytecode, { threads });
+    const proofInputs: InputMap = {
+      root: toHex(jsTree.root),
+      leaf: toHex(leaf),
+      index: toHex(jsTree.indexOf(leaf)),
+      hash_path: merkleProof.siblings.map((a) => toHex(a[0]))
+    }
+    const { witness, returnValue } = await noir.execute(proofInputs);
+    const proof = await backend.generateProof(witness, { keccak: true });
+    console.timeEnd('prove poseidon2')
+    const isVerifiedJs = await backend.verifyProof(proof)
+    console.log({isVerifiedJs})
+    await backend.destroy()
+  });
+
+  it("keccak", async function () {
+    const BinaryIMTKeccak = await viem.deployContract("BinaryIMTKeccak");
+    const keccakTree = await viem.deployContract("testKeccak", [treeDepth], { libraries: { BinaryIMTKeccak: BinaryIMTKeccak.address } })
+
+    const leaf = 12345n//getRandomBigInt()
+    const insertTx = await keccakTree.write.insert([leaf])
+    const receipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: insertTx })
+
+    const hashFunction = (left: Hex, right: Hex) => keccak256(concat([padHex(left, { size: 32 }), padHex(right, { size: 32 })]))
+    const hashFunctionButBigInt = (input: IMTNode[]) => hexToBigInt(hashFunction(toHex(input[0], { size: 32 }), toHex(input[1], { size: 32 })))
+    const jsTree = new IMT(hashFunctionButBigInt, Number(treeDepth), 0, 2, [leaf])
+    const leafIndex = jsTree.indexOf(leaf)
+    const merkleProof = jsTree.createProof(leafIndex)
+
+    console.time('prove keccak')
+    const threads = os.cpus().length
+    console.log({ threads })
+    const noir = new Noir(keccakCircuit32 as CompiledCircuit);
+    const backend = new UltraHonkBackend(keccakCircuit32.bytecode, { threads });
+
+    const proofInputs: InputMap = {
+      root: splitHexToU8s(toHex(jsTree.root, { size: 32 })),
+      leaf: splitHexToU8s(toHex(leaf, { size: 32 })),
+      index: toHex(jsTree.indexOf(leaf), { size: 32 }),
+      hash_path: merkleProof.siblings.map((a) => splitHexToU8s(toHex(a[0], { size: 32 })))
+    }
+    let proof
+    try {
+      const { witness, returnValue } = await noir.execute(proofInputs);
+      proof = await backend.generateProof(witness, { keccak: true });
+
+    } catch (error) {
+      console.error(error)
+      await backend.destroy()
+      throw error;
+    }
+
+    console.timeEnd('prove keccak')
+    await backend.destroy()
+  });
+
+  it("sha256", async function () {
+    const BinaryIMTSHA256 = await viem.deployContract("BinaryIMTSHA256");
+    const SHA256Tree = await viem.deployContract("testSHA256", [treeDepth], { libraries: { BinaryIMTSHA256: BinaryIMTSHA256.address } })
+
+    const leaf = 12345n//getRandomBigInt()
+    const insertTx = await SHA256Tree.write.insert([leaf])
+    const receipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: insertTx })
+
+    const hashFunction = (left: Hex, right: Hex) => sha256(concat([padHex(left, { size: 32 }), padHex(right, { size: 32 })]))
+    const hashFunctionButBigInt = (input: IMTNode[]) => hexToBigInt(hashFunction(toHex(input[0], { size: 32 }), toHex(input[1], { size: 32 })))
+    const jsTree = new IMT(hashFunctionButBigInt, Number(treeDepth), 0, 2, [leaf])
+    const leafIndex = jsTree.indexOf(leaf)
+    const merkleProof = jsTree.createProof(leafIndex)
+
+    console.time('prove sha256')
+    const threads = os.cpus().length
+    console.log({ threads })
+    const noir = new Noir(sha256Circuit32 as CompiledCircuit);
+    const backend = new UltraHonkBackend(sha256Circuit32.bytecode, { threads });
+
+    const proofInputs: InputMap = {
+      root: splitHexToU8s(toHex(jsTree.root, { size: 32 })),
+      leaf: splitHexToU8s(toHex(leaf, { size: 32 })),
+      index: toHex(jsTree.indexOf(leaf), { size: 32 }),
+      hash_path: merkleProof.siblings.map((a) => splitHexToU8s(toHex(a[0], { size: 32 })))
+    }
+    let proof
+    try {
+      const { witness, returnValue } = await noir.execute(proofInputs);
+      proof = await backend.generateProof(witness, { keccak: true });
+
+    } catch (error) {
+      console.error(error)
+      await backend.destroy()
+      throw error;
+    }
+
+    console.timeEnd('prove sha256')
+    await backend.destroy()
+  });
+})
 describe("insert gas test 16", async function () {
   const { viem } = await network.connect();
   const treeDepth = 16n
@@ -469,155 +656,7 @@ describe("prove 16 depth", async function () {
 
   });
 })
-describe("prove 32 depth", async function () {
-  const { viem } = await network.connect();
-  const publicClient = await viem.getPublicClient();
-  const treeDepth = 32n
 
-  it("og zk-kit poseidon", async function () {
-    const PoseidonT3Lib = await viem.deployContract("PoseidonT3", [], { value: 0n, libraries: {} })
-    const BinaryOldZKKITIMTPoseidon = await viem.deployContract("BinaryOldZKKITIMTPoseidon", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
-    const ogPoseidonTree = await viem.deployContract("testOldZKKITPoseidon", [treeDepth], { libraries: { BinaryOldZKKITIMTPoseidon: BinaryOldZKKITIMTPoseidon.address } })
-
-    const leaf = getRandomBigInt() % FIELD_LIMIT
-    const insertTx = await ogPoseidonTree.write.insert([leaf])
-    const receipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: insertTx });
-
-    const jsTree = new IMT(poseidon2, Number(treeDepth), 0, 2)
-    jsTree.insert(leaf)
-    const leafIndex = jsTree.indexOf(leaf)
-    const merkleProof = jsTree.createProof(leafIndex)
-
-    console.time('prove og zk-kit poseidon')
-    const threads = os.cpus().length
-    console.log({ threads })
-    const noir = new Noir(poseidonCircuit32 as CompiledCircuit);
-    const backend = new UltraHonkBackend(poseidonCircuit32.bytecode, { threads });
-    const proofInputs: InputMap = {
-      root: toHex(jsTree.root),
-      leaf: toHex(leaf),
-      index: toHex(jsTree.indexOf(leaf)),
-      hash_path: merkleProof.siblings.map((a) => toHex(a[0]))
-    }
-    const { witness, returnValue } = await noir.execute(proofInputs);
-    const proof = await backend.generateProof(witness, { keccak: true });
-    console.timeEnd('prove og zk-kit poseidon')
-    await backend.destroy()
-  });
-
-  it("poseidon", async function () {
-    const PoseidonT3Lib = await viem.deployContract("PoseidonT3", [], { value: 0n, libraries: {} })
-    const BinaryIMTPoseidon = await viem.deployContract("BinaryIMTPoseidon", [], { value: 0n, libraries: { PoseidonT3: PoseidonT3Lib.address } });
-    const poseidonTree = await viem.deployContract("testPoseidon", [treeDepth], { libraries: { BinaryIMTPoseidon: BinaryIMTPoseidon.address } })
-
-    const leaf = getRandomBigInt() % FIELD_LIMIT
-    const insertTx = await poseidonTree.write.insert([leaf])
-    const receipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: insertTx });
-
-    const jsTree = new IMT(poseidon2, Number(treeDepth), 0, 2)
-    jsTree.insert(leaf)
-    const leafIndex = jsTree.indexOf(leaf)
-    const merkleProof = jsTree.createProof(leafIndex)
-
-    console.time('prove poseidon')
-    const threads = os.cpus().length
-    console.log({ threads })
-    const noir = new Noir(poseidonCircuit32 as CompiledCircuit);
-    const backend = new UltraHonkBackend(poseidonCircuit32.bytecode, { threads });
-    const proofInputs: InputMap = {
-      root: toHex(jsTree.root),
-      leaf: toHex(leaf),
-      index: toHex(jsTree.indexOf(leaf)),
-      hash_path: merkleProof.siblings.map((a) => toHex(a[0]))
-    }
-    const { witness, returnValue } = await noir.execute(proofInputs);
-    const proof = await backend.generateProof(witness, { keccak: true });
-    console.timeEnd('prove poseidon')
-    await backend.destroy()
-  });
-
-  it("keccak", async function () {
-    const BinaryIMTKeccak = await viem.deployContract("BinaryIMTKeccak");
-    const keccakTree = await viem.deployContract("testKeccak", [treeDepth], { libraries: { BinaryIMTKeccak: BinaryIMTKeccak.address } })
-
-    const leaf = 12345n//getRandomBigInt()
-    const insertTx = await keccakTree.write.insert([leaf])
-    const receipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: insertTx })
-
-    const hashFunction = (left: Hex, right: Hex) => keccak256(concat([padHex(left, { size: 32 }), padHex(right, { size: 32 })]))
-    const hashFunctionButBigInt = (input: IMTNode[]) => hexToBigInt(hashFunction(toHex(input[0], { size: 32 }), toHex(input[1], { size: 32 })))
-    const jsTree = new IMT(hashFunctionButBigInt, Number(treeDepth), 0, 2, [leaf])
-    const leafIndex = jsTree.indexOf(leaf)
-    const merkleProof = jsTree.createProof(leafIndex)
-
-    console.time('prove keccak')
-    const threads = os.cpus().length
-    console.log({ threads })
-    const noir = new Noir(keccakCircuit32 as CompiledCircuit);
-    const backend = new UltraHonkBackend(keccakCircuit32.bytecode, { threads });
-
-    const proofInputs: InputMap = {
-      root: splitHexToU8s(toHex(jsTree.root, { size: 32 })),
-      leaf: splitHexToU8s(toHex(leaf, { size: 32 })),
-      index: toHex(jsTree.indexOf(leaf), { size: 32 }),
-      hash_path: merkleProof.siblings.map((a) => splitHexToU8s(toHex(a[0], { size: 32 })))
-    }
-    let proof
-    try {
-      const { witness, returnValue } = await noir.execute(proofInputs);
-      proof = await backend.generateProof(witness, { keccak: true });
-
-    } catch (error) {
-      console.error(error)
-      await backend.destroy()
-      throw error;
-    }
-
-    console.timeEnd('prove keccak')
-    await backend.destroy()
-  });
-
-  it("sha256", async function () {
-    const BinaryIMTSHA256 = await viem.deployContract("BinaryIMTSHA256");
-    const SHA256Tree = await viem.deployContract("testSHA256", [treeDepth], { libraries: { BinaryIMTSHA256: BinaryIMTSHA256.address } })
-
-    const leaf = 12345n//getRandomBigInt()
-    const insertTx = await SHA256Tree.write.insert([leaf])
-    const receipt = await (await viem.getPublicClient()).waitForTransactionReceipt({ hash: insertTx })
-
-    const hashFunction = (left: Hex, right: Hex) => sha256(concat([padHex(left, { size: 32 }), padHex(right, { size: 32 })]))
-    const hashFunctionButBigInt = (input: IMTNode[]) => hexToBigInt(hashFunction(toHex(input[0], { size: 32 }), toHex(input[1], { size: 32 })))
-    const jsTree = new IMT(hashFunctionButBigInt, Number(treeDepth), 0, 2, [leaf])
-    const leafIndex = jsTree.indexOf(leaf)
-    const merkleProof = jsTree.createProof(leafIndex)
-
-    console.time('prove sha256')
-    const threads = os.cpus().length
-    console.log({ threads })
-    const noir = new Noir(sha256Circuit32 as CompiledCircuit);
-    const backend = new UltraHonkBackend(sha256Circuit32.bytecode, { threads });
-
-    const proofInputs: InputMap = {
-      root: splitHexToU8s(toHex(jsTree.root, { size: 32 })),
-      leaf: splitHexToU8s(toHex(leaf, { size: 32 })),
-      index: toHex(jsTree.indexOf(leaf), { size: 32 }),
-      hash_path: merkleProof.siblings.map((a) => splitHexToU8s(toHex(a[0], { size: 32 })))
-    }
-    let proof
-    try {
-      const { witness, returnValue } = await noir.execute(proofInputs);
-      proof = await backend.generateProof(witness, { keccak: true });
-
-    } catch (error) {
-      console.error(error)
-      await backend.destroy()
-      throw error;
-    }
-
-    console.timeEnd('prove sha256')
-    await backend.destroy()
-  });
-})
 
 
 
